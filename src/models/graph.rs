@@ -30,7 +30,6 @@ impl Graph {
         }
 
         for edge in lines[2..].into_iter() {
-            println!("edge = {}", edge);
             let node: Vec<usize> = edge.
                 trim().
                 split(" ").

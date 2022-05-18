@@ -19,11 +19,11 @@ pub trait ACO {
         self.increment_pheromone(p, &pheromone_delta, k_best_clique);
     }
     
-    fn vertex_probability(&self, p: &Parameters, vertex: &usize, current_clique: &HashSet<usize>) -> f32 {
+    fn vertex_probability(&self, p: &Parameters, vertex: &usize, candidates: &HashSet<usize>, current_clique: &HashSet<usize>) -> f32 {
         let tau = self.tau_factor_of_vertex(vertex, current_clique).powf(p.alpha);
         let mut sum_others_tau: f32 = 0.0;
-        for candidate in current_clique.into_iter() {
-            sum_others_tau += self.tau_factor_of_vertex(candidate, current_clique);
+        for other_v in candidates.into_iter() {
+            sum_others_tau += self.tau_factor_of_vertex(other_v, current_clique);
         }
         tau / sum_others_tau
     }
@@ -32,7 +32,7 @@ pub trait ACO {
         let mut probabilities: Vec<(usize, f32)> = vec![(0, 0.0); candidates.len()]; 
         let mut sum = 0.0;
         for (i, candidate) in candidates.into_iter().enumerate() {
-            let p = self.vertex_probability(p, candidate, current_clique);
+            let p = self.vertex_probability(p, candidate, candidates, current_clique);
             sum += p;
             probabilities[i] = (*candidate, sum);
         }
@@ -72,6 +72,8 @@ pub trait ACO {
             
             global_best = Self::choose_best_clique(&global_best, &gen_best);
             self.update_pheromone_trail(p, &global_best, &gen_best);
+
+            println!("Generation {} |{}| -> {:?}", _gen, global_best.len(), global_best);
         }
 
         global_best

@@ -5,6 +5,8 @@ use std::{error::Error, fs};
 use models::config::Config;
 use models::graph::Graph;
 
+use crate::{models::parameters::{Parameters}, algorithms::{vertex_ac::VertexAC, edge_ac::EdgeAC, aco::ACO}};
+
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match config {
         Config::Help() => {
@@ -24,20 +26,27 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             
         }
         Config::VertexAC(filename, cycles, ants, alpha, rho, tau_max, tau_min) => {
-            println!("Vertex-AC: {} {} {} {} {} {} {}", filename, cycles, ants, alpha, rho, tau_max, tau_min);
-
+            
             let contents = fs::read_to_string(filename)?;
             let graph = Graph::new(contents);
-
-            println!("{:?}", graph);
+            let parameters = Parameters{graph, cycles, ants, alpha, rho, tau_max, tau_min};
+            
+            println!("Vertex-AC: {:?}", parameters);
+            let mut vertex_ac = VertexAC::new(&parameters);
+            let best_clique = vertex_ac.aco_procedure(&parameters);
+            println!("Best Clique: |{}| -> {:?}", best_clique.len(), best_clique);
+            
         },
         Config::EdgeAC(filename, cycles, ants, alpha, rho, tau_max, tau_min) => {
-            println!("Edge-AC: {} {} {} {} {} {} {}", filename, cycles, ants, alpha, rho, tau_max, tau_min);
-
+            
             let contents = fs::read_to_string(filename)?;
             let graph = Graph::new(contents);
-
-            println!("{:?}", graph);
+            let parameters = Parameters{graph, cycles, ants, alpha, rho, tau_max, tau_min};
+            
+            println!("Edge-AC: {:?}", parameters);
+            let mut edge_ac = EdgeAC::new(&parameters);
+            let best_clique = edge_ac.aco_procedure(&parameters);
+            println!("Best Clique: |{}| -> {:?}", best_clique.len(), best_clique);
         },
         
     }

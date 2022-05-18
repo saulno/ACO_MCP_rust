@@ -1,5 +1,5 @@
 use super::graph::Graph;
-
+#[derive(Debug)]
 pub struct Parameters {
     pub graph: Graph,
     pub cycles: usize,

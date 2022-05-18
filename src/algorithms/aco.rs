@@ -4,10 +4,10 @@ use rand::Rng;
 
 use crate::models::parameters::{Parameters};
 
-trait ACO {
+pub trait ACO {
     fn set_initial_pheromone_trails(&mut self, p: &Parameters);
     
-    fn tau_factor_of_vertex(&self, p: &Parameters, vertex: &usize, current_clique: &HashSet<usize>) -> f32;
+    fn tau_factor_of_vertex(&self, vertex: &usize, current_clique: &HashSet<usize>) -> f32;
 
     fn increment_pheromone(&mut self, p: &Parameters, pheromone_delta: &f32, current_clique: &HashSet<usize>);
 
@@ -20,10 +20,10 @@ trait ACO {
     }
     
     fn vertex_probability(&self, p: &Parameters, vertex: &usize, current_clique: &HashSet<usize>) -> f32 {
-        let tau = self.tau_factor_of_vertex(p, vertex, current_clique).powf(p.alpha);
+        let tau = self.tau_factor_of_vertex(vertex, current_clique).powf(p.alpha);
         let mut sum_others_tau: f32 = 0.0;
         for candidate in current_clique.into_iter() {
-            sum_others_tau += self.tau_factor_of_vertex(p, candidate, current_clique);
+            sum_others_tau += self.tau_factor_of_vertex(candidate, current_clique);
         }
         tau / sum_others_tau
     }

@@ -1,4 +1,5 @@
 pub mod models;
+pub mod algorithms;
 
 use std::{error::Error, fs};
 use models::config::Config;

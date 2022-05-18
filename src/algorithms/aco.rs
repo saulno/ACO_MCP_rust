@@ -19,22 +19,40 @@ pub trait ACO {
         self.increment_pheromone(p, &pheromone_delta, k_best_clique);
     }
     
-    fn vertex_probability(&self, p: &Parameters, vertex: &usize, candidates: &HashSet<usize>, current_clique: &HashSet<usize>) -> f32 {
-        let tau = self.tau_factor_of_vertex(vertex, current_clique).powf(p.alpha);
-        let mut sum_others_tau: f32 = 0.0;
-        for other_v in candidates.into_iter() {
-            sum_others_tau += self.tau_factor_of_vertex(other_v, current_clique);
+    fn vertex_probability(&self, p: &Parameters, vertex: &usize, current_clique: &HashSet<usize>, memory_tau: &mut Vec<f32>, memory_sum_tau_candidates: &f32) -> f32 {
+        let tau: f32;
+        if memory_tau[*vertex] > 0.0 {
+            tau = memory_tau[*vertex];
+        } else {
+            tau = self.tau_factor_of_vertex(vertex, current_clique);
         }
-        tau / sum_others_tau
+
+        let tau = tau.powf(p.alpha);
+        tau / memory_sum_tau_candidates
     }
 
     fn choose_vertex_using_pheromones_probabilities(&self, p: &Parameters, candidates: &HashSet<usize>, current_clique: &HashSet<usize>) -> usize {
         let mut probabilities: Vec<(usize, f32)> = vec![(0, 0.0); candidates.len()]; 
-        let mut sum = 0.0;
+
+        let mut memory_tau = vec![-1.0; p.graph.n_vertex];
+        let mut memory_sum_tau_candidates = 0.0;
+        for other_v in candidates.into_iter() {
+            let tau_other_v: f32;
+            if memory_tau[*other_v] > 0.0 {
+                tau_other_v = memory_tau[*other_v];
+            } else {
+                tau_other_v = self.tau_factor_of_vertex(other_v, current_clique);
+            }
+
+            memory_tau[*other_v] = tau_other_v;
+            memory_sum_tau_candidates += tau_other_v;
+        }
+
+        let mut sum_propapilites = 0.0;
         for (i, candidate) in candidates.into_iter().enumerate() {
-            let p = self.vertex_probability(p, candidate, candidates, current_clique);
-            sum += p;
-            probabilities[i] = (*candidate, sum);
+            let p = self.vertex_probability(p, candidate, current_clique, &mut memory_tau, &memory_sum_tau_candidates);
+            sum_propapilites += p;
+            probabilities[i] = (*candidate, sum_propapilites);
         }
         
         let random: f32 = rand::thread_rng().gen_range(0.0..1.0);
